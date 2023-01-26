@@ -1,25 +1,21 @@
 # Pi Network SDK Integration Guide
 
-The following guide explains how to build a Pi SDK for any given language, and how to integrate app-to-user (A2U)
-payments into it. It walks you through how to use Stellar SDK to achieve A2U payment process.
+The following guide explains how to build a Pi SDK for any programming language, and how to integrate app-to-user (A2U)
+payments into it. It walks you through how to use the various building blocks to achieve the A2U payment process.
 
 Code snippets in this documentation are meant as high-level examples of the required steps, and will NOT run
 if they are copy-pasted into an existing project. They are written in Javascript, but the whole point of
-this document is to explain how to build a Pi SDK in _ANY_ other language than JS.
+this document is to explain how to build a Pi SDK in _ANY language other_ than JS.
 
 If you need to integrate Pi into your Node.JS project, you're looking for the
-[Pi SDK for Node.JS](https://github.com/pi-apps/pi-node-sdk#coming-soon).
+[Pi SDK for Node.JS](https://github.com/pi-apps/pi-node-js-sdk#coming-soon).
 
 
-## Stellar SDK and the Pi blockchain
+## Building blocks
 
-The foundational element of A2U payments is to sign and submit a blockchain transaction from your app's server, which enables you
-to pay an amount of π to one of your app's users (or Test-π on the testnet).
+A2U payments involve both interacting with the Pi Blockchain and the Pi backend. The Pi blockchain is obviously the source of truth for exchanging Pi. The Pi backend is used to improve the end-user experience (e.g. provide users understandable memos on their wallet, and link backs to your app, while preserving user and developer privacy by not making this information public on the chain) and to assist developers in avoiding to make payment mistakes (e.g. double payments due to server faults)
 
-The Pi blockchain is running the Stellar Consensus Protocol (SCP) - with a few twists. As far as you're concerned when you're
-building a Pi SDK, this means that transactions can be submitted using an existing Stellar SDK.
-
-You may find a list of official Stellar SDK's in various languages on [Stellar's webiste](https://developers.stellar.org/docs/tools-and-sdks#sdk-library).
+Your Pi SDK implementation needs to both be able to sign and submit blockchain transactions using the Stellar SDK and send additional API calls to the Pi backend using standard https libraries. As a reference, here is the list of the [official Stellar SDK](https://developers.stellar.org/docs/tools-and-sdks#sdk-library)'s in various languages. You will need to pick the one that is applicable to the language you are working on, include it as dependancy into your SDK, and use it as needed.
 
 
 ## Integration Guide
@@ -28,28 +24,28 @@ You may find a list of official Stellar SDK's in various languages on [Stellar's
 
 There are certain steps you need to follow to make A2U payment. Before we take a look at the overall flow, there's one thing to keep in mind. 
 
-> **important** At the moment, you can process only one A2U payment at a time, due to the nature of sequence number requirement on the Pi Blockchain. However, we will support batch payments, *i.e. creating an A2U payment with multiple user uids,* to increase the throughput.
+> **important** At the moment, you can process only one A2U payment at a time, due to the nature of sequence number requirement on the Pi Blockchain. This is a safety feature of the blockchain. However, we will support batch payments, *i.e. creating an A2U payment with multiple user uids,* to increase the throughput. This is possible through simply adding more _operations_ into each _transaction_.
 
-The flow is as follows:
+You essentiall need to encapsulate the following API calls into convenient SDK functions:
 
 1. Send API request to the Pi server to create a payment
-> Unlike U2A payment where you create a payment using the Pi SDK's `createPayment` method, you need to create a payment through an API endpoint `api.minepi.com/v2/payments`.
-- Notice that unlike U2A payment, which requires the Server-Side Approval, A2U payment is already automatically approved when it's requested, as the flow starts from the app side, not from the user side.
+> Similarly to the U2A payments where app developers create a payment using the Pi SDK's `createPayment` method, you need to implement a method that creates a payment through an API endpoint `api.minepi.com/v2/payments`.
+- Notice that unlike U2A payment, which requires the Server-Side Approval, your SDK can automatically approve A2U payments, as the flow starts from the app side, not from the user side. 
 
 2. Load the account
-> You need to look up the account every time before submitting a transaction, even if the Pi server gave you its address, because the account could have been destroyed on the blockchain. By following this recommendation, you can save the transaction fee that might have been wasted. Remember that the transaction fee still gets spent even if the transaction fails.
+> You need to look up the account every time before submitting a transaction, even if the Pi server gave you its address in the past. That's because the account could have been destroyed on the blockchain or the user could have changed their actuve wallet. By following this recommendation, developers can save the transaction fee that might have been wasted and avoid sending Pi to the wrong address. Remember that the transaction fee still gets spent even if a transaction fails.
 
 3. Build the transaction
 > You need to build a transaction with the relevant data such as the recipient's wallet address.
 
 4. Sign the transaction
-> After you build the transaction, you need to sign with your keypair. Retrieving your keypair requires your secret seed.
+> After you build the transaction, you need to sign with the developer's keypair. Retrieving the keypair requires the secret seed.
 
 5. Submit the transaction to the Pi blockchain
-> This is when your transaction is sent to the Pi blockchain. Depending on the status, you will get a corresponding response.
+> This is when the transaction is sent to the Pi blockchain. Depending on the status, you will get a corresponding response.
 
-6. Complete the payment by sending API request to `/complete` endpoint
-> The transaction will be verified by the Pi server after you submit it in the previous step. Send an API request to `/complete` endpoint to check the status and complete the payment.
+6. Complete the payment by sending an API request to the `/complete` endpoint
+> The transaction will be verified by the Pi server after you submit it in the previous step. Send an API request to the `/complete` endpoint to check the status and complete the payment.
 
 
 ### Example integration:
