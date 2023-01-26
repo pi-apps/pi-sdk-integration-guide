@@ -8,7 +8,7 @@ if they are copy-pasted into an existing project. They are written in Javascript
 this document is to explain how to build a Pi SDK in _ANY language other_ than JS.
 
 If you need to integrate Pi into your Node.JS project, you're looking for the
-[Pi SDK for Node.JS](https://github.com/pi-apps/pi-node-js-sdk#coming-soon).
+[Pi SDK for Node.JS](https://github.com/pi-apps/pi-nodejs).
 
 
 ## Building blocks
