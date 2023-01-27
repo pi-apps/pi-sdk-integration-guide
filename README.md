@@ -15,7 +15,7 @@ If you need to integrate Pi into your Node.JS project, you're looking for the
 
 A2U payments involve both interacting with the Pi Blockchain and the Pi backend. The Pi blockchain is obviously the source of truth for exchanging Pi. The Pi backend is used to improve the end-user experience (e.g. provide users understandable memos on their wallet, and link backs to your app, while preserving user and developer privacy by not making this information public on the chain) and to assist developers in avoiding to make payment mistakes (e.g. double payments due to server faults)
 
-Your Pi SDK implementation needs to both be able to sign and submit blockchain transactions using the Stellar SDK and send additional API calls to the Pi backend using standard https libraries. As a reference, here is the list of the [official Stellar SDK](https://developers.stellar.org/docs/tools-and-sdks#sdk-library)'s in various languages. You will need to pick the one that is applicable to the language you are working on, include it as dependancy into your SDK, and use it as needed.
+Your Pi SDK implementation needs to both be able to sign and submit blockchain transactions using the Stellar SDK and send additional API calls to the Pi backend using standard https libraries. As a reference, here is the list of the [official Stellar SDK](https://developers.stellar.org/docs/tools-and-sdks#sdk-library)'s in various languages. You will need to pick the one that is applicable to the language you are working on, include it as dependency into your SDK, and use it as needed.
 
 
 ## Integration Guide
@@ -30,10 +30,11 @@ You essentiall need to encapsulate the following API calls into convenient SDK f
 
 1. Send API request to the Pi server to create a payment
 > Similarly to the U2A payments where app developers create a payment using the Pi SDK's `createPayment` method, you need to implement a method that creates a payment through an API endpoint `api.minepi.com/v2/payments`.
-- Notice that unlike U2A payment, which requires the Server-Side Approval, your SDK can automatically approve A2U payments, as the flow starts from the app side, not from the user side. 
+- Unlike U2A payment, which requires the Server-Side Approval, A2U payments do not require any approval from the developer
+before a transaction can be sumitted, since the flow starts from the app side and not from the user's side.
 
 2. Load the account
-> You need to look up the account every time before submitting a transaction, even if the Pi server gave you its address in the past. That's because the account could have been destroyed on the blockchain or the user could have changed their actuve wallet. By following this recommendation, developers can save the transaction fee that might have been wasted and avoid sending Pi to the wrong address. Remember that the transaction fee still gets spent even if a transaction fails.
+> You need to look up the account every time before submitting a transaction, even if the Pi server gave you its address in the past. That's because the account could have been destroyed on the blockchain or the user could have changed their active wallet. By following this recommendation, developers can save the transaction fee that might have been wasted and avoid sending Pi to the wrong address. Remember that the transaction fee still gets spent even if a transaction fails.
 
 3. Build the transaction
 > You need to build a transaction with the relevant data such as the recipient's wallet address.
